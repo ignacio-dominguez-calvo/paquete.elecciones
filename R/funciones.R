@@ -26,46 +26,18 @@
 #'
 descargar_Archivo <- function(tipo_eleccion, año, mes, ambito, directorio = "./descargas/") {
   # Diccionarios con los parámetros admitidos para tipo eleccion y ambito y sus correspondencias
-  dict_elec <- list(
-    'referendum' = '01',
-    'referéndum' = '01',
-    'congreso' = '02',
-    'senado' = '03',
-    'municipales' = '04',
-    'cabildos' = '06',
-    'europeas' = '07'
 
 
-  )
-  dict_ambito <-list(
-    'mesa' = 'MESA',
-    'municipio' = 'MUNI',
-    'superior' = 'TOTA'
-  )
-
-  tipo_eleccion<-tolower(tipo_eleccion)
-  ambito <- tolower(ambito)
-
-  # Comprueba que la clave proporcionada esté entre las claves permitidas
-  if (!tipo_eleccion %in% names(dict_elec)) {
-    stop("El tipo de elección proporcionado no es válido. Tipos válidos: referendum, congreso,senado,municipales,cabildos,europeas")
-  }
-
-  if (!ambito %in% names(dict_ambito)) {
-    stop("El ámbito proporcionado no es válido. Ámbitos válidos: mesa, municipio o superior")
-  }
-  if (is.numeric(mes)) {
-    # Si el mes es un número, lo formateamos a dos dígitos
-    mes <- sprintf('%02d', mes)
-  }
-  print(mes)
+  tipo_eleccion<-comprueba_tipo_eleccion(tipo_eleccion)
+  ambito<-comprueba_ambito(ambito)
+  mes<-comprueba_mes(mes)
 
   #Si la carpeta especificada no existe, se crea
   if (!file.exists(directorio)) {
     dir.create(directorio)
   }
   url_base <- "https://infoelectoral.interior.gob.es/estaticos/docxl/apliextr/"
-  nombre_archivo <- paste(dict_elec[[tipo_eleccion]], año, mes, '_', dict_ambito[[ambito]], ".zip", sep = "")
+  nombre_archivo <- paste(tipo_eleccion, año, mes, '_', ambito, ".zip", sep = "")
   nombre_archivo <- trimws(nombre_archivo)
   url_completo <- paste(url_base, nombre_archivo, sep = "")
   directorio <- trimws(directorio)  # Eliminar espacio en blanco al final de directorio
@@ -79,101 +51,127 @@ descargar_Archivo <- function(tipo_eleccion, año, mes, ambito, directorio = "./
 #descargar_Archivo('02', '2019', '04', 'tota')
 
 
-leer_datos <- function(tipo_eleccion, año, mes, ambito,directorio = "./descargas/",tabla='05'){
-  directorio <- descargar_Archivo(tipo_eleccion,año,mes,ambito,directorio)
-  tablas_path <- system.file("extdata", "tablas_finales_2.xlsx", package = "paquete.elecciones")
-  print(tablas_path)
-  if( tabla == '11'|| tabla == '12'){
+#' Comprueba el tipo de elección y devuelve su código correspondiente.
+#'
+#' Esta función toma un tipo de elección y devuelve su código correspondiente
+#' según un diccionario predefinido.
+#'
+#' @param tipo_eleccion El tipo de elección a comprobar.
+#' @return El código correspondiente al tipo de elección.
+#' @examples
+#' comprueba_tipo_eleccion("congreso")
+comprueba_tipo_eleccion <- function(tipo_eleccion){
+  tipo_eleccion<-tolower(tipo_eleccion)
+  dict_elec <- list(
+    'referendum' = '01',
+    'referéndum' = '01',
+    'congreso' = '02',
+    'senado' = '03',
+    'municipales' = '04',
+    'cabildos' = '06',
+    'europeas' = '07'
+  )
+  if (!tipo_eleccion %in% names(dict_elec)) {
+    stop("El tipo de elección proporcionado no es válido. Tipos válidos: referendum, congreso,senado,municipales,cabildos,europeas")
+  }
+
+  return(dict_elec[[tipo_eleccion]])
+}
+
+#' Comprueba el ámbito y devuelve su código correspondiente.
+#'
+#' Esta función toma un ámbito y devuelve su código correspondiente según un diccionario predefinido.
+#'
+#' @param ambito El ámbito a comprobar.
+#' @return El código correspondiente al ámbito.
+#' @examples
+#' comprueba_ambito("municipio")
+comprueba_ambito <- function(ambito){
+  ambito <- tolower(ambito)
+  dict_ambito <-list(
+    'mesa' = 'MESA',
+    'municipio' = 'MUNI',
+    'superior' = 'TOTA'
+  )
+
+  if (!ambito %in% names(dict_ambito)) {
+    stop("El ámbito proporcionado no es válido. Ámbitos válidos: mesa, municipio o superior")
+  }
+  return(dict_ambito[[ambito]])
+}
+
+#' Comprueba el mes y lo formatea si es un número.
+#'
+#' Esta función comprueba si el mes es un número y lo formatea a dos dígitos si es necesario.
+#'
+#' @param mes El mes a comprobar y formatear.
+#' @return El mes formateado.
+#' @examples
+#' comprueba_mes(5)
+comprueba_mes<-function(mes){
+  if (is.numeric(mes)) {
+    # Si el mes es un número, lo formateamos a dos dígitos
+    mes <- sprintf('%02d', mes)
+  }
+  return(mes)
+}
+
+
+
+leer_datos <- function(tipo_eleccion, año, mes, ambito, directorio = "./descargas/", tabla = '05') {
+
+  directorio <- descargar_Archivo(tipo_eleccion, año, mes, ambito, directorio)
+  tablas_path <- "C:\\Users\\nacho\\OneDrive\\Escritorio\\TFG ESTADISTICA\\paquete.elecciones\\inst\\extdata\\tablas_finales_2.xlsx"
+
+  if (tabla == '11' || tabla == '12') {
     sheet_name = paste(tabla, "04aamm.DAT", sep = "")
-  }else{
+  } else {
     sheet_name = paste(tabla, "xxaamm.DAT", sep = "")
   }
-  tabla <- read_excel(tablas_path, sheet = sheet_name)
-  print(tabla)
-  return(FALSE)
+
+  tabla_variables <- read_excel(tablas_path, sheet = sheet_name)
+  tabla_variables <- tabla_variables[-c(1, 2), , drop = FALSE]
   ultimos_dos_digitos <- substr(año, nchar(año) - 1, nchar(año))
-  ruta<- paste(directorio,"05",tipo_eleccion,ultimos_dos_digitos,mes,".DAT",sep="")
-  print(ruta)
+
+
+  mes<-comprueba_mes(mes)
+  tipo_eleccion<-comprueba_tipo_eleccion(tipo_eleccion)
+  nombres_columnas <- unique(tabla_variables$Variable)
+  nuevo_df <- data.frame(matrix(ncol = length(nombres_columnas)))
+  names(nuevo_df) <- nombres_columnas
+
+  ruta<- paste(directorio,tabla,tipo_eleccion,ultimos_dos_digitos,mes,".DAT",sep="")
   file_content <- readLines(ruta, encoding = 'UTF-8')
   file_content <- iconv(file_content, "latin1", "UTF-8")
 
-  # Inicializar el dataframe vacío
-  df <- data.frame(tipo_eleccion = integer(),
-                   año = integer(),
-                   mes = integer(),
-                   numero_vuelta = integer(),
-                   codigo_CCAA = integer(),
-                   codigo_provincia = integer(),
-                   codigo_municipio = integer(),
-                   num_distrito_municipal = integer(),
-                   nombre = character(),
-                   codigo_distrito_electoral = integer(),
-                   codigo_partido_judicial = integer(),
-                   codigo_diputacion_provincial = integer(),
-                   codigo_comarca = integer(),
-                   pablacion_derecho = integer(),
-                   numero_mesas = integer(),
-                   censo_INE = integer(),
-                   censo_escrutinio = integer(),
-                   censo_CERE = character(),
-                   total_votantes_CERE = integer(),
-                   votantes_primer_avance = integer(),
-                   votantes_segundo_avance = integer(),
-                   voto_blanco = integer(),
-                   voto_nulo = integer(),
-                   voto_a_candidatura = character(),
-                   numero_escaños = integer(),
-                   votos_afirmativos_referendum = integer(),
-                   votos_negativos_referendum = integer(),
-                   stringsAsFactors = FALSE)
 
-  # Recorrer cada línea en file_content
-  for(municipio in file_content) {
-    # Extraer valores de cada línea y asignar a las columnas correspondientes
-    tipo_eleccion <- as.integer(substr(municipio, 1, 2))
-    año <- as.integer(substr(municipio, 3, 6))
-    mes <- as.integer(substr(municipio, 7, 8))
-    numero_vuelta <- as.integer(substr(municipio, 9, 9))
-    codigo_CCAA <- as.integer(substr(municipio, 10, 11))
-    codigo_provincia <- as.integer(substr(municipio, 12, 13))
-    codigo_municipio <- as.integer(substr(municipio, 14, 16))
-    num_distrito_municipal <- as.integer(substr(municipio, 17, 18))
-    nombre <- substr(municipio, 19, 118)
-    codigo_distrito_electoral <- as.integer(substr(municipio, 119, 119))
-    codigo_partido_judicial <- as.integer(substr(municipio, 120, 122))
-    codigo_diputacion_provincial <- as.integer(substr(municipio, 123, 125))
-    codigo_comarca <- as.integer(substr(municipio, 126, 128))
-    pablacion_derecho <- as.integer(substr(municipio, 129, 136))
-    numero_mesas <- as.integer(substr(municipio, 137, 141))
-    censo_INE <- as.integer(substr(municipio, 142, 149))
-    censo_escrutinio <- as.integer(substr(municipio, 150, 157))
-    censo_CERE <- substr(municipio, 158, 165)
-    total_votantes_CERE <- as.integer(substr(municipio, 166, 173))
-    votantes_primer_avance <- as.integer(substr(municipio, 174, 181))
-    votantes_segundo_avance <- as.integer(substr(municipio, 182, 189))
-    voto_blanco <- as.integer(substr(municipio, 190, 197))
-    voto_nulo <- as.integer(substr(municipio, 198, 205))
-    voto_a_candidatura <- substr(municipio, 206, 213)
-    numero_escaños <- as.integer(substr(municipio, 214, 216))
-    votos_afirmativos_referendum <- as.integer(substr(municipio, 217, 224))
-    votos_negativos_referendum <- as.integer(substr(municipio, 225, 232))
-
-    # Agregar los valores extraídos al dataframe
-    df <- rbind(df, data.frame(tipo_eleccion, año, mes, numero_vuelta, codigo_CCAA,
-                               codigo_provincia, codigo_municipio, num_distrito_municipal,
-                               nombre, codigo_distrito_electoral, codigo_partido_judicial,
-                               codigo_diputacion_provincial, codigo_comarca, pablacion_derecho,
-                               numero_mesas, censo_INE, censo_escrutinio, censo_CERE,
-                               total_votantes_CERE, votantes_primer_avance,
-                               votantes_segundo_avance, voto_blanco, voto_a_candidatura,
-                               numero_escaños, votos_afirmativos_referendum,
-                               votos_negativos_referendum))
-
+  for (municipio in file_content) {
+    # Inicializar un vector para almacenar los valores extraídos de cada línea
+    valores <- c()
+    # Iterar sobre las columnas "Inicio" y "Fin"
+    for (i in 1:nrow(tabla_variables)) {
+      # Extraer valores de cada línea
+      valor <- substr(municipio, as.integer(tabla_variables[i, "Inicio"]), as.integer(tabla_variables[i, "Fin"]))
+      # Convertir a entero si corresponde
+      if (grepl("Num", tabla_variables[i, "Tipo"])) {
+        valor <- as.integer(valor)
+      }
+      # Agregar el valor al vector
+      valores <- c(valores, valor)
+    }
+    # Agregar los valores extraídos al DataFrame
+    nuevo_df <- rbind(nuevo_df, valores)
   }
-  return(df)
+
+  # Eliminar la primera fila vacía generada por la inicialización del DataFrame vacío
+  nuevo_df <- nuevo_df[-1, ]
+
+  # Mostrar el nuevo DataFrame
+  return(nuevo_df)
 }
 
-library(readxl)
+df <- leer_datos(tipo_eleccion = 'congreso', año = 2019, mes = '04', ambito = 'municipio')
+df
 
 if (!requireNamespace("devtools", quietly = TRUE)) {
   install.packages("devtools")
