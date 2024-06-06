@@ -42,9 +42,12 @@ descargar_Archivo <- function(tipo_eleccion, año, mes, ambito, directorio = "./
   url_completo <- paste(url_base, nombre_archivo, sep = "")
   directorio <- trimws(directorio)  # Eliminar espacio en blanco al final de directorio
   ruta <- file.path(directorio, nombre_archivo)  # Usar file.path para construir la ruta
-  download.file(url_completo, destfile = ruta, mode = "wb")
-  unzip(ruta, exdir = directorio, overwrite = FALSE, junkpaths = FALSE)  # Usar solo el directorio como exdir
-
+  if (!file.exists(ruta)) {
+    download.file(url_completo, destfile = ruta, mode = "wb")
+    unzip(ruta, exdir = directorio, overwrite = FALSE, junkpaths = FALSE)  # Usar solo el directorio como exdir
+  } else {
+    message("El archivo ya existe en el directorio especificado.")
+  }
   return(directorio)
 }
 
@@ -118,6 +121,19 @@ comprueba_mes<-function(mes){
 
 
 
+#' Leer Datos de Elecciones
+#'
+#' Esta función descarga y procesa archivos de datos electorales según los parámetros especificados.
+#'
+#' @param tipo_eleccion Un carácter que indica el tipo de elección (por ejemplo, "general", "local").
+#' @param año Un número que indica el año de la elección.
+#' @param mes Un número que indica el mes de la elección.
+#' @param ambito Un carácter que indica el ámbito de la elección (por ejemplo, "nacional", "regional").
+#' @param directorio Un carácter que indica el directorio donde se guardarán los archivos descargados. Por defecto es "./descargas/".
+#' @param tabla Un carácter que indica el código de la tabla de datos a procesar. Por defecto es '05'.
+#' @return Un data.frame con los datos procesados de las elecciones.
+#' @importFrom readxl read_excel
+#' @export
 leer_datos <- function(tipo_eleccion, año, mes, ambito, directorio = "./descargas/", tabla = '05') {
 
   directorio <- descargar_Archivo(tipo_eleccion, año, mes, ambito, directorio)
@@ -144,44 +160,67 @@ leer_datos <- function(tipo_eleccion, año, mes, ambito, directorio = "./descarg
   file_content <- readLines(ruta, encoding = 'UTF-8')
   file_content <- iconv(file_content, "latin1", "UTF-8")
 
+  lista_valores <- vector("list", length = length(file_content))
 
-  for (municipio in file_content) {
-    # Inicializar un vector para almacenar los valores extraídos de cada línea
-    valores <- c()
-    # Iterar sobre las columnas "Inicio" y "Fin"
-    for (i in 1:nrow(tabla_variables)) {
-      # Extraer valores de cada línea
-      valor <- substr(municipio, as.integer(tabla_variables[i, "Inicio"]), as.integer(tabla_variables[i, "Fin"]))
-      # Convertir a entero si corresponde
-      if (grepl("Num", tabla_variables[i, "Tipo"])) {
-        valor <- as.integer(valor)
+  for (index in seq_along(file_content)) {
+    municipio <- file_content[index]
+    # Extraer los valores para la línea actual
+    valores <- mapply(function(inicio, fin, tipo) {
+      valor <- substr(municipio, as.integer(inicio), as.integer(fin))
+      if (grepl("Num.", tipo)) {
+        return(as.integer(valor))
       }
-      # Agregar el valor al vector
-      valores <- c(valores, valor)
-    }
-    # Agregar los valores extraídos al DataFrame
-    nuevo_df <- rbind(nuevo_df, valores)
+      return(valor)
+    }, tabla_variables$Inicio, tabla_variables$Fin, tabla_variables$Tipo)
+
+    # Almacenar los valores en la lista
+    lista_valores[[index]] <- valores
   }
 
-  # Eliminar la primera fila vacía generada por la inicialización del DataFrame vacío
-  nuevo_df <- nuevo_df[-1, ]
+  # Convertir la lista en un DataFrame
+  nuevo_df <- do.call(rbind, lista_valores)
+  if ("nombre_municipio" %in% names(nuevo_df)) {
+    nuevo_df[, nombre_municipio <- trimws(nombre_municipio, which = "right")]
+  }
+
+  # Transformar columnas que se puedan convertir a número
+  nuevo_df <- as.data.frame(nuevo_df)  # Asegúrate de que es un dataframe
+  nuevo_df[] <- lapply(nuevo_df, function(x) {
+    if(is.character(x)) {
+      # Intenta convertir a numérico
+      y <- as.numeric(x)
+      # Si la conversión falla completamente (solo NA's), devuelve x original, de lo contrario y
+      if(all(is.na(y))) x else y
+    } else {
+      x  # Devuelve la columna sin cambios si no es de tipo caracter
+    }
+  })
+  names(nuevo_df) <- nombres_columnas
 
   # Mostrar el nuevo DataFrame
   return(nuevo_df)
 }
 
-df <- leer_datos(tipo_eleccion = 'congreso', año = 2019, mes = '04', ambito = 'municipio')
-df
+system.time({
+  df <- leer_datos2(tipo_eleccion = 'congreso', año = 2019, mes = '04', ambito = 'municipio')
+})
+
+
+# Mostrar el tiempo de ejecución
+head(df)
 
 if (!requireNamespace("devtools", quietly = TRUE)) {
   install.packages("devtools")
 }
 
 
+install.packages("rnaturalearth")
+install.packages("rnaturalearthdata")
+
 
 devtools::install("C:/Users/nacho/OneDrive/Escritorio/TFG ESTADISTICA/paquete.elecciones")
 library(paquete.elecciones)
-leer_datos('congreso', '2019', '04', 'mesa')
+df<-leer_datos('congreso', '2019', '04', 'municipio')
 
 system.file("extdata", "tablas_finales_2.xlsx", package = "paquete.elecciones")
 
