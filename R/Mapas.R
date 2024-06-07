@@ -195,4 +195,8 @@ crear_mapa_CCAA <- function(df, variable) {
 }
 # Ejemplo
 crear_mapa_provincias(df, df$votos_en_blanco)
+df$prop_primera_vuelta<-df$votantes_primer_avance/df$censo_INE
+crear_mapa_provincias(df, df$prop_primera_vuelta)
+crear_mapa_CCAA(df,df$prop_primera_vuelta)
+df$total_votantes_CERE
 str(df$codigo_ine_provincia)
