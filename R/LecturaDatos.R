@@ -131,10 +131,10 @@ comprueba_mes<-function(mes){
 #' @param directorio Un carácter que indica el directorio donde se guardarán los archivos descargados. Por defecto es "./descargas/".
 #' @param tabla Un carácter que indica el código de la tabla de datos a procesar. Por defecto es '05'.
 #' @return Un data.frame con los datos procesados de las elecciones.
-#' @importFrom readxl read_excel
+#' @importFrom readxl read_excel dplyr
 #' @export
 leer_tabla <- function(tipo_eleccion, año, mes, ambito, directorio = "./descargas/", tabla = '05') {
-
+  suppressWarnings({
   directorio <- descargar_Archivo(tipo_eleccion, año, mes, ambito, directorio)
   tablas_path <- "C:\\Users\\nacho\\OneDrive\\Escritorio\\TFG ESTADISTICA\\paquete.elecciones\\inst\\extdata\\tablas_finales_2.xlsx"
 
@@ -198,6 +198,7 @@ leer_tabla <- function(tipo_eleccion, año, mes, ambito, directorio = "./descarg
 
   # Mostrar el nuevo DataFrame
   return(nuevo_df)
+  })
 }
 
 #' Obtener Datos de Elecciones Filtrados
@@ -227,16 +228,19 @@ leer_tabla <- function(tipo_eleccion, año, mes, ambito, directorio = "./descarg
 #' @importFrom readr read_csv
 get_elecciones <- function(tipo = NULL, año = NULL) {
   # Diccionario de tipo a código
+  if(!is.null(tipo)){
+    tipo<-tolower(tipo)
+  }
   dict_elec_text_to_num <- list(
-    'referendum' = '01',
-    'congreso' = '02',
-    'senado' = '03',
-    'municipales' = '04',
-    'cabildos' = '06',
-    'europeas' = '07'
+    'referendum' = 1,
+    'congreso' = 2,
+    'senado' = 3,
+    'municipales' = 4,
+    'cabildos' = 6,
+    'europeas' = 7
   )
 
-  # Diccionario de código a tipo
+  # Diccionario de código a tipo (los códigos son enteros sin ceros a la izquierda)
   dict_elec_num_to_text <- list(
     '1' = 'referendum',
     '2' = 'congreso',
@@ -246,7 +250,6 @@ get_elecciones <- function(tipo = NULL, año = NULL) {
     '7' = 'europeas'
   )
   datos <- read.csv("C:/Users/nacho/OneDrive/Escritorio/TFG ESTADISTICA/paquete.elecciones/inst/extdata/entradas_validas.csv", stringsAsFactors = FALSE)
-
   if (!is.null(tipo) && tipo %in% names(dict_elec_text_to_num)) {
     codigo_tipo <- dict_elec_text_to_num[[tipo]]
     datos <- datos %>% filter(Tipo == codigo_tipo)
@@ -348,15 +351,11 @@ leer_varias_tablas <- function(tipo_eleccion, año, mes, ambito, directorio = ".
   })
   return(dfs)
 }
-descripcion_tabla(4)
-get_tablas_disponibles("congreso")
-get_elecciones(año=2019)
+#descripcion_tabla(4)
+#get_tablas_disponibles("congreso")
 
 
-
-system.time({
-  df <- leer_datos2(tipo_eleccion = 'congreso', año = 2019, mes = '04', ambito = 'municipio')
-})
+get_elecciones(tipo='referendum')
 
 
 
