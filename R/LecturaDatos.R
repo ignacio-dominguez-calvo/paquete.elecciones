@@ -222,10 +222,8 @@ leer_tabla <- function(tipo_eleccion, año, mes, ambito, directorio = "./descarg
 #' get_elecciones(tipo = "congreso", año = 2021)
 #' get_elecciones(año = 2020)
 #' get_elecciones(tipo = "municipales")
-#' @import dplyr
+#' @import dplyr readr read_csv
 #' @export
-#'
-#' @importFrom readr read_csv
 get_elecciones <- function(tipo = NULL, año = NULL) {
   # Diccionario de tipo a código
   if(!is.null(tipo)){
@@ -356,8 +354,8 @@ leer_varias_tablas <- function(tipo_eleccion, año, mes, ambito, directorio = ".
 
 
 get_elecciones(tipo='referendum')
-
-
+library(readxl)
+df<-leer_tabla('congreso',2019,04,'Mesa')
 
 
 
