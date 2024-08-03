@@ -1,10 +1,31 @@
 # Paquete de Datos Electorales
 ![Cabecera del sitio web de la fuente de datos](images/cabecera.png)
-Este paquete proporciona herramientas para descargar, procesar y analizar datos electorales del gobierno español, relativas a elecciones pasadas. Incluye funciones para descargar archivos de datos, leer y procesar tablas de datos electorales, y visualizar los resultados en mapas.
 
+
+Este paquete proporciona herramientas para descargar, procesar y analizar datos electorales del gobierno español, relativas a elecciones pasadas. Incluye funciones para descargar archivos de datos, leer y procesar tablas de datos electorales, y visualizar los resultados en mapas.
+## Índice
+
+1. [Instalación](#instalación)
+2. [Uso](#uso)
+   - [`LecturaDatos.R`](#lecturadatos)
+     - [`descargar_Archivo`](#descargar_archivo)
+     - [`leer_tabla`](#leer_tabla)
+     - [`get_elecciones`](#get_elecciones)
+     - [`descripcion_tabla`](#descripcion_tabla)
+     - [`leer_varias_tablas`](#leer_varias_tablas)
+   - [Mapas.R](#mapasr)
+     - [`crear_mapa_provincias`](#crear_mapa_provincias)
+     - [`crear_mapa_CCAA`](#crear_mapa_ccaa)
+     - [`mapa_provincia_secciones`](#mapa_provincia_secciones)
+   - [Tablas.R](#tablasr)
+     - [`tabla_participacion`](#tabla_participacion)
+     - [`resultados_tabla_participacion`](#resultados_tabla_participacion)
+3. [Enlace de Interés](#enlace-de-interés)
+4. [Autor](#autor)
+5. [Licencia](#licencia)
 ## Instalación
 
-Para instalar este paquete, debs tener R y el sistema de gestión de paquetes `devtools` instalados. Luego, puedes instalar el paquete desde el repositorio local o remoto.
+Para instalar este paquete, debes tener R y el sistema de gestión de paquetes `devtools` instalados. Luego, puedes instalar el paquete desde el repositorio local o remoto.
 
 ```r
 # Instalar devtools si no está instalado
@@ -179,6 +200,7 @@ head(datos_electorales[[1]])
 ### Mapas.R
 #### `crear_mapa_provincias`
 
+
 Crea un mapa de las provincias de España coloreado por una variable específica.
 
 **Descripción:**
@@ -200,6 +222,7 @@ Un mapa de las provincias de España coloreado por la variable especificada.
 # Crear un mapa de provincias coloreado por votos en blanco
 crear_mapa_provincias(df, df$votos_en_blanco)
 ```
+<img src="images/Ejemplo-mapa-provincias.png" alt="Mapa provincias por votos en blanco" width="400"/>
 **Importa:**
 - `dplyr`
 - `ggplot2`
@@ -231,9 +254,12 @@ Un mapa de las Comunidades Autónomas de España coloreado por la variable espec
 crear_mapa_CCAA(df, df$prop_primera_vuelta)
 
 ```
+<img src="images/Mapa-CCAA.png" alt="Mapa CCAA por votantes primer avance" width="400"/>
+
 ### Mapas.R
 
 #### `mapa_provincia_secciones`
+
 
 Crea un mapa de secciones censales de una provincia específica coloreado por una variable particular.
 
@@ -257,6 +283,7 @@ Un objeto ggplot que representa el mapa de la provincia con las secciones colore
 # Crear un mapa de secciones censales para la provincia de Valladolid coloreado por votos en blanco
 mapa_provincia_secciones(df, df$votos_en_blanco, "Valladolid")
 ```
+<img src="images/mapa-muni (1).png" alt="Mapa por municipios provincia Valladolid" width="400"/>
 ### `Tablas.R`
 ### Funciones de Análisis de Datos
 
@@ -290,6 +317,7 @@ Un `dataframe` invisible con los resultados de participación y una impresión e
 # Calcular y mostrar la tabla de participación para la provincia de Valladolid
 tabla_participacion("congreso", 2021, 6, "Valladolid")
 ```
+<img src="images/tabla.png" alt="Ejemplo tabla participación" width="400"/>
 #### `resultados_tabla_participacion`
 
 Calcula los resultados de participación para un `dataframe` dado.
@@ -319,3 +347,16 @@ Un `dataframe` con las categorías de votación y sus totales y porcentajes.
 # Calcular y mostrar resultados de participación para un referéndum
 resultados_tabla_participacion(df, "referendum")
 ```
+## Enlace de Interés
+
+Para más información sobre los datos utilizados, visita el sitio web del [Ministerio del Interior](https://infoelectoral.interior.gob.es/es/elecciones-celebradas/), donde se encuentran los datos electorales oficiales.
+
+## Autor
+
+Este documento y el código asociado han sido desarrollados por **Ignacio Domínguez Calvo** como Trabajo Fin de Grado del grado en Estadística de la Universidad de Valladolid.
+
+## Licencia
+
+El código proporcionado está licenciado bajo la [Licencia MIT](https://opensource.org/licenses/MIT). 
+
+
