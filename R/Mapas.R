@@ -13,9 +13,6 @@ library(viridis)
 #' @param df Un dataframe que contiene datos de población por provincias.
 #' @param variable La variable del dataframe cuyo total se desea representar en el mapa.
 #' @return Un mapa de las provincias de España coloreado por la variable especificada.
-#' @examples
-#' \dontrun{crear_mapa_provincias(df,df$votos_en_blanco)
-#' }
 #' @import dplyr
 #' @import ggplot2
 #' @import sf
