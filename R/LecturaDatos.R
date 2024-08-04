@@ -222,7 +222,8 @@ leer_tabla <- function(tipo_eleccion, año, mes, ambito, directorio = "./descarg
 #' get_elecciones(tipo = "congreso", año = 2021)
 #' get_elecciones(año = 2020)
 #' get_elecciones(tipo = "municipales")
-#' @import dplyr readr read_csv
+#' @import dplyr
+#' @importFrom readr read_csv
 #' @export
 get_elecciones <- function(tipo = NULL, año = NULL) {
   # Diccionario de tipo a código

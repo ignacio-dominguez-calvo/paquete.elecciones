@@ -1,9 +1,5 @@
 
 
-
-library(dplyr)
-library(readxl)
-source("./R/LecturaDatos.R")
 #' Calcula y muestra tablas de participación basadas en el tipo de elección y provincia
 #'
 #' Esta función carga datos electorales para un tipo y fecha especificados,

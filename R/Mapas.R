@@ -1,9 +1,4 @@
 
-library(sf)
-library(ggplot2)
-library(giscoR)
-library(dplyr)
-library(viridis)
 
 #' Crear un mapa de las provincias de España coloreado por una variable específica
 #'
@@ -208,13 +203,11 @@ crear_mapa_CCAA <- function(df, variable) {
 #'
 #' @importFrom dplyr filter full_join mutate
 #' @importFrom ggplot2 ggplot geom_sf aes scale_fill_viridis_c labs theme_minimal theme
-#' @importFrom stringdist stringdist  # if you use stringdist inside get_min_distancia_Levenshtein
-#' @importFrom purrr map_chr  # if using purrr for the map_chr instead of sapply
-#' @importFrom sf geom_sf  # if sf functions are used directly
-#'
-#' @examples
-#' mapa_provincia_secciones(df, df$votos_en_blanco, "Valladolid")
-#'
+#' @importFrom stringdist stringdist
+#' @importFrom purrr map_chr
+#' @importFrom sf geom_sf
+#' @importFrom mapSpain esp_get_munic
+#' @examples mapa_provincia_secciones(df, df$votos_en_blanco, "Valladolid")
 #' @export
 mapa_provincia_secciones<-function(df,variable, provincia){
     ine_codes <- data.frame(
@@ -231,7 +224,7 @@ mapa_provincia_secciones<-function(df,variable, provincia){
     )
     variable <- deparse(substitute(variable))
     variable <- sub(".*\\$", "", variable)
-    municipios <- esp_get_munic()
+    municipios <- mapSpain::esp_get_munic()
     municipios$cpro<-as.numeric(municipios$cpro)
     municipios$cmun<-as.numeric(municipios$cmun)
     df_reducido <- df[, c("codigo_ine_provincia","codigo_ine_municipio",variable)]
